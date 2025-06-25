@@ -17,26 +17,42 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Slf4j
 public class SampleJobConfiguration {
 
-    // Job 생성
+    // Job 정의
     @Bean
-    public Job sampleJob(JobRepository jobRepository, Step sampleStep) {
-        return new JobBuilder("sampleJob", jobRepository)
-                .start(sampleStep)
+    public Job simpleJob(JobRepository jobRepository, Step simpleStep1, Step simpleStep2) {
+        return new JobBuilder("simpleJob", jobRepository)
+                .start(simpleStep1)
+                .next(simpleStep2)
                 .build();
     }
 
-    // Step 생성
+    // Step1 정의
     @Bean
     @JobScope
     public Step simpleStep1(JobRepository jobRepository,
-                            PlatformTransactionManager platformTransactionManager,
+                            PlatformTransactionManager transactionManager,
                             @Value("#{jobParameters[requestDate]}") String requestDate) {
         return new StepBuilder("simpleStep1", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    log.info(">>>>>>> sample step");
+                    log.info(">>>>> This is Step1");
                     log.info(">>>>> requestDate = {}", requestDate);
                     return RepeatStatus.FINISHED;
-                }, platformTransactionManager)
+                }, transactionManager)
+                .build();
+    }
+
+    // Step2 정의
+    @Bean
+    @JobScope
+    public Step simpleStep2(JobRepository jobRepository,
+                            PlatformTransactionManager transactionManager,
+                            @Value("#{jobParameters[requestDate]}") String requestDate) {
+        return new StepBuilder("simpleStep2", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    log.info(">>>>> This is Step2");
+                    log.info(">>>>> requestDate = {}", requestDate);
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
                 .build();
     }
 }
